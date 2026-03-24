@@ -163,10 +163,12 @@ body::before {
 .status-metric small,
 .status-copy,
 .hint,
+.field-note,
 .entry-date,
 .inline-status,
 .entries-empty,
-.delete-form p {
+.delete-form p,
+.member-email {
   color: var(--muted);
 }
 
@@ -174,6 +176,12 @@ body::before {
   display: grid;
   gap: 24px;
   grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+}
+
+.left-column {
+  display: grid;
+  gap: 24px;
+  align-content: start;
 }
 
 .card {
@@ -185,16 +193,74 @@ body::before {
   font-size: clamp(1.6rem, 3vw, 2.2rem);
 }
 
+.auth-switch {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 18px;
+  padding: 6px;
+  border: 1px solid rgba(148, 174, 187, 0.12);
+  border-radius: 18px;
+  background: rgba(4, 13, 18, 0.54);
+}
+
+.auth-tab {
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.auth-tab.is-active {
+  background: rgba(137, 240, 209, 0.12);
+  color: #ddfff6;
+}
+
+.auth-form,
 .guestbook-form {
   margin-top: 18px;
 }
 
+.auth-form label,
 .guestbook-form label,
 .delete-form label {
   display: block;
   margin-bottom: 18px;
   color: #d7e7ee;
   font-size: 0.95rem;
+}
+
+.member-state {
+  margin-top: 18px;
+}
+
+.member-badge {
+  display: inline-flex;
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(137, 240, 209, 0.12);
+  color: #ddfff6;
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.member-name {
+  margin: 14px 0 0;
+  font-size: 1.35rem;
+}
+
+.member-email {
+  margin: 8px 0 0;
+  word-break: break-word;
+}
+
+.member-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
 }
 
 input,
@@ -228,6 +294,17 @@ textarea:focus {
   transform: translateY(-1px);
 }
 
+input:disabled {
+  opacity: 0.78;
+  cursor: not-allowed;
+}
+
+.field-note {
+  margin: -10px 0 18px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
 .form-foot {
   display: flex;
   gap: 18px;
@@ -237,7 +314,7 @@ textarea:focus {
 
 .hint {
   margin: 0;
-  max-width: 32ch;
+  max-width: 34ch;
   line-height: 1.6;
   font-size: 0.92rem;
 }
@@ -276,13 +353,15 @@ button {
 
 .primary-button:hover,
 .ghost-button:hover,
-.delete-button:hover {
+.delete-button:hover,
+.auth-tab:hover {
   transform: translateY(-1px);
 }
 
 .primary-button:disabled,
 .ghost-button:disabled,
-.delete-button:disabled {
+.delete-button:disabled,
+.auth-tab:disabled {
   opacity: 0.55;
   cursor: wait;
   transform: none;
@@ -396,19 +475,22 @@ button {
     padding: 20px;
   }
 
-  .form-foot {
+  .auth-switch {
+    grid-template-columns: 1fr;
+  }
+
+  .form-foot,
+  .member-actions,
+  .entry-head,
+  .dialog-actions {
     align-items: stretch;
     flex-direction: column;
   }
 
   .primary-button,
   .ghost-button,
-  .delete-button {
+  .delete-button,
+  .auth-tab {
     width: 100%;
-  }
-
-  .entry-head,
-  .dialog-actions {
-    flex-direction: column;
   }
 }

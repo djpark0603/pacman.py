@@ -6,7 +6,7 @@
   <title>Orbit Guestbook</title>
   <meta
     name="description"
-    content="GitHub Pages에 올릴 수 있는 Supabase 기반 정적 방명록입니다."
+    content="GitHub Pages에 바로 올릴 수 있는 Supabase 기반 정적 방명록입니다."
   >
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,13 +24,13 @@
         <div class="hero-copy">
           <h1>Orbit Guestbook</h1>
           <p class="hero-text">
-            짧게 인사만 남겨도 되고, 프로젝트 방문 기록처럼 사용해도 됩니다.
-            브라우저에서 바로 Supabase와 통신하는 정적 방명록입니다.
+            짧은 인사도 좋고, 프로젝트 방문 기록도 좋습니다.
+            지금은 익명 방명록에 더해 회원가입과 로그인까지 붙은 정적 게시판입니다.
           </p>
           <div class="hero-badges">
-            <span>실시간 연결 없이도 단순 배포</span>
+            <span>Supabase Auth 회원가입</span>
             <span>PIN 기반 삭제</span>
-            <span>모바일 대응</span>
+            <span>GitHub Pages 배포</span>
           </div>
         </div>
         <aside class="status-panel" aria-label="방명록 상태">
@@ -50,61 +50,188 @@
     </header>
 
     <main class="layout">
-      <section class="composer card">
-        <div class="section-head">
-          <p class="section-kicker">Write</p>
-          <h2>방명록 남기기</h2>
-        </div>
-
-        <form id="guestbook-form" class="guestbook-form">
-          <label>
-            이름
-            <input
-              id="name-input"
-              name="name"
-              type="text"
-              maxlength="20"
-              placeholder="2~20자"
-              required
-            >
-          </label>
-
-          <label>
-            삭제용 PIN
-            <input
-              id="pin-input"
-              name="pin"
-              type="password"
-              minlength="4"
-              maxlength="32"
-              placeholder="삭제할 때 필요한 비밀번호"
-              required
-            >
-          </label>
-
-          <label>
-            메시지
-            <textarea
-              id="message-input"
-              name="message"
-              rows="6"
-              maxlength="500"
-              placeholder="따뜻한 말도 좋고, 짧은 피드백도 좋습니다."
-              required
-            ></textarea>
-          </label>
-
-          <div class="form-foot">
-            <p class="hint">
-              메시지는 최대 500자까지 저장됩니다. 삭제할 때는 입력한 PIN이 필요합니다.
-            </p>
-            <button id="submit-button" class="primary-button" type="submit">
-              남기기
-            </button>
+      <div class="left-column">
+        <section class="auth card">
+          <div class="section-head">
+            <p class="section-kicker">Member</p>
+            <h2>회원가입 / 로그인</h2>
           </div>
-          <p id="form-status" class="inline-status" aria-live="polite"></p>
-        </form>
-      </section>
+
+          <div id="auth-guest-state">
+            <div class="auth-switch" role="tablist" aria-label="인증 모드">
+              <button
+                id="signup-tab-button"
+                class="auth-tab is-active"
+                type="button"
+                data-auth-mode="signup"
+              >
+                회원가입
+              </button>
+              <button
+                id="login-tab-button"
+                class="auth-tab"
+                type="button"
+                data-auth-mode="login"
+              >
+                로그인
+              </button>
+            </div>
+
+            <form id="signup-form" class="auth-form">
+              <label>
+                표시 이름
+                <input
+                  id="signup-display-name"
+                  name="display-name"
+                  type="text"
+                  minlength="2"
+                  maxlength="20"
+                  placeholder="방명록에 표시될 이름"
+                  required
+                >
+              </label>
+
+              <label>
+                이메일
+                <input
+                  id="signup-email"
+                  name="signup-email"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="you@example.com"
+                  required
+                >
+              </label>
+
+              <label>
+                비밀번호
+                <input
+                  id="signup-password"
+                  name="signup-password"
+                  type="password"
+                  minlength="8"
+                  autocomplete="new-password"
+                  placeholder="최소 8자"
+                  required
+                >
+              </label>
+
+              <button id="signup-button" class="primary-button" type="submit">
+                회원가입
+              </button>
+            </form>
+
+            <form id="login-form" class="auth-form" hidden>
+              <label>
+                이메일
+                <input
+                  id="login-email"
+                  name="login-email"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="you@example.com"
+                  required
+                >
+              </label>
+
+              <label>
+                비밀번호
+                <input
+                  id="login-password"
+                  name="login-password"
+                  type="password"
+                  autocomplete="current-password"
+                  placeholder="비밀번호 입력"
+                  required
+                >
+              </label>
+
+              <button id="login-button" class="primary-button" type="submit">
+                로그인
+              </button>
+            </form>
+          </div>
+
+          <section id="auth-member-state" class="member-state" hidden>
+            <p class="member-badge">Signed In</p>
+            <h3 id="member-name" class="member-name"></h3>
+            <p id="member-email" class="member-email"></p>
+            <p class="hint">
+              로그인 중에는 방명록 이름이 계정 표시 이름으로 고정됩니다.
+              글 삭제용 PIN은 계정 비밀번호와 별도로 입력합니다.
+            </p>
+            <div class="member-actions">
+              <button id="sync-profile-button" class="ghost-button" type="button">
+                이름 다시 채우기
+              </button>
+              <button id="logout-button" class="primary-button" type="button">
+                로그아웃
+              </button>
+            </div>
+          </section>
+
+          <p id="auth-status" class="inline-status" aria-live="polite"></p>
+        </section>
+
+        <section class="composer card">
+          <div class="section-head">
+            <p class="section-kicker">Write</p>
+            <h2>방명록 남기기</h2>
+          </div>
+
+          <form id="guestbook-form" class="guestbook-form">
+            <label>
+              이름
+              <input
+                id="name-input"
+                name="name"
+                type="text"
+                maxlength="20"
+                placeholder="2~20자"
+                required
+              >
+            </label>
+            <p id="name-help" class="field-note">
+              로그인하지 않으면 직접 이름을 입력합니다.
+            </p>
+
+            <label>
+              삭제용 PIN
+              <input
+                id="pin-input"
+                name="pin"
+                type="password"
+                minlength="4"
+                maxlength="32"
+                placeholder="삭제할 때 필요한 비밀번호"
+                required
+              >
+            </label>
+
+            <label>
+              메시지
+              <textarea
+                id="message-input"
+                name="message"
+                rows="6"
+                maxlength="500"
+                placeholder="따뜻한 말도 좋고, 짧은 피드백도 좋습니다."
+                required
+              ></textarea>
+            </label>
+
+            <div class="form-foot">
+              <p class="hint">
+                메시지는 최대 500자까지 저장됩니다. 삭제할 때는 입력한 PIN이 필요합니다.
+              </p>
+              <button id="submit-button" class="primary-button" type="submit">
+                남기기
+              </button>
+            </div>
+            <p id="form-status" class="inline-status" aria-live="polite"></p>
+          </form>
+        </section>
+      </div>
 
       <section class="entries-panel card">
         <div class="section-head">

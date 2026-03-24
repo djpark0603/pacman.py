@@ -1,13 +1,13 @@
 # Orbit Guestbook
 
 GitHub Pages에 바로 올릴 수 있는 정적 방명록입니다. 프론트엔드는 순수 HTML/CSS/JS이고,
-데이터 저장은 Supabase REST API를 사용합니다.
+데이터 저장은 Supabase REST API와 Supabase Auth를 사용합니다.
 
 ## Files
 
 - `index.html`: 방명록 UI
 - `styles.css`: 전체 스타일
-- `app.js`: Supabase 조회/등록/삭제 로직
+- `app.js`: Supabase 조회/등록/삭제와 회원가입/로그인 로직
 - `supabase.sql`: Supabase SQL Editor에 넣을 테이블, 뷰, 함수 정의
 - `pacman.py`: 기존 Python `tkinter` Pac-Man 게임
 
@@ -22,6 +22,14 @@ GitHub Pages에 바로 올릴 수 있는 정적 방명록입니다. 프론트엔
 - `guestbook_entries_public` 뷰: 공개 목록 조회
 - `create_guestbook_entry(...)`: 새 메시지 작성
 - `delete_guestbook_entry(...)`: PIN 확인 후 삭제
+
+## 회원 기능
+
+- 회원가입: Supabase Auth 이메일/비밀번호 기반
+- 로그인: Access token을 `localStorage`에 저장해 세션 복구
+- 작성 연동: 로그인하면 방명록 이름이 계정 표시 이름으로 고정
+
+Supabase Dashboard에서 이메일 회원가입이 비활성화되어 있으면 Auth 기능은 동작하지 않습니다.
 
 ## 로컬 실행
 

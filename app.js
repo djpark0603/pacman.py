@@ -5,35 +5,64 @@ const SUPABASE_ANON_KEY =
 const MAX_NAME_LENGTH = 20;
 const MAX_MESSAGE_LENGTH = 500;
 const MIN_PIN_LENGTH = 4;
+const MIN_AUTH_PASSWORD_LENGTH = 8;
+const SESSION_STORAGE_KEY = "orbit_guestbook_session";
+
 const ENTRY_ENDPOINT =
   `${SUPABASE_URL}/rest/v1/guestbook_entries_public?select=id,name,message,created_at&order=created_at.desc`;
 const CREATE_ENDPOINT = `${SUPABASE_URL}/rest/v1/rpc/create_guestbook_entry`;
 const DELETE_ENDPOINT = `${SUPABASE_URL}/rest/v1/rpc/delete_guestbook_entry`;
+const SIGNUP_ENDPOINT = `${SUPABASE_URL}/auth/v1/signup`;
+const LOGIN_ENDPOINT = `${SUPABASE_URL}/auth/v1/token?grant_type=password`;
+const LOGOUT_ENDPOINT = `${SUPABASE_URL}/auth/v1/logout`;
+const USER_ENDPOINT = `${SUPABASE_URL}/auth/v1/user`;
+const REFRESH_ENDPOINT = `${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`;
 
 const state = {
-  entries: [],
+  authMode: "signup",
   deletingId: null,
+  entries: [],
+  member: null,
+  session: null,
 };
 
 const elements = {
-  count: document.querySelector("#entry-count"),
+  authGuestState: document.querySelector("#auth-guest-state"),
+  authMemberState: document.querySelector("#auth-member-state"),
+  authStatus: document.querySelector("#auth-status"),
+  cancelDeleteButton: document.querySelector("#cancel-delete-button"),
+  confirmDeleteButton: document.querySelector("#confirm-delete-button"),
   connectionStatus: document.querySelector("#connection-status"),
-  refreshButton: document.querySelector("#refresh-button"),
-  form: document.querySelector("#guestbook-form"),
-  nameInput: document.querySelector("#name-input"),
-  pinInput: document.querySelector("#pin-input"),
-  messageInput: document.querySelector("#message-input"),
-  submitButton: document.querySelector("#submit-button"),
-  formStatus: document.querySelector("#form-status"),
-  entriesLoading: document.querySelector("#entries-loading"),
-  entriesList: document.querySelector("#entries-list"),
-  entryTemplate: document.querySelector("#entry-template"),
+  count: document.querySelector("#entry-count"),
   deleteDialog: document.querySelector("#delete-dialog"),
   deleteForm: document.querySelector("#delete-form"),
   deletePinInput: document.querySelector("#delete-pin-input"),
   deleteStatus: document.querySelector("#delete-status"),
-  cancelDeleteButton: document.querySelector("#cancel-delete-button"),
-  confirmDeleteButton: document.querySelector("#confirm-delete-button"),
+  entriesList: document.querySelector("#entries-list"),
+  entriesLoading: document.querySelector("#entries-loading"),
+  entryTemplate: document.querySelector("#entry-template"),
+  form: document.querySelector("#guestbook-form"),
+  formStatus: document.querySelector("#form-status"),
+  loginButton: document.querySelector("#login-button"),
+  loginEmail: document.querySelector("#login-email"),
+  loginForm: document.querySelector("#login-form"),
+  loginPassword: document.querySelector("#login-password"),
+  logoutButton: document.querySelector("#logout-button"),
+  memberEmail: document.querySelector("#member-email"),
+  memberName: document.querySelector("#member-name"),
+  messageInput: document.querySelector("#message-input"),
+  nameHelp: document.querySelector("#name-help"),
+  nameInput: document.querySelector("#name-input"),
+  pinInput: document.querySelector("#pin-input"),
+  refreshButton: document.querySelector("#refresh-button"),
+  signupButton: document.querySelector("#signup-button"),
+  signupDisplayName: document.querySelector("#signup-display-name"),
+  signupEmail: document.querySelector("#signup-email"),
+  signupForm: document.querySelector("#signup-form"),
+  signupPassword: document.querySelector("#signup-password"),
+  syncProfileButton: document.querySelector("#sync-profile-button"),
+  submitButton: document.querySelector("#submit-button"),
+  tabButtons: [...document.querySelectorAll("[data-auth-mode]")],
 };
 
 boot();
@@ -44,6 +73,10 @@ function boot() {
   });
 
   elements.form.addEventListener("submit", handleCreateSubmit);
+  elements.signupForm.addEventListener("submit", handleSignupSubmit);
+  elements.loginForm.addEventListener("submit", handleLoginSubmit);
+  elements.logoutButton.addEventListener("click", handleLogoutClick);
+  elements.syncProfileButton.addEventListener("click", handleSyncProfileName);
   elements.deleteForm.addEventListener("submit", handleDeleteSubmit);
   elements.cancelDeleteButton.addEventListener("click", closeDeleteDialog);
   elements.deleteDialog.addEventListener("cancel", (event) => {
@@ -51,7 +84,70 @@ function boot() {
     closeDeleteDialog();
   });
 
+  for (const button of elements.tabButtons) {
+    button.addEventListener("click", () => {
+      setAuthMode(button.dataset.authMode);
+    });
+  }
+
+  setAuthMode(state.authMode);
+  syncComposerWithMember();
+  renderMemberState();
+  void restoreSession();
   void loadEntries();
+}
+
+async function restoreSession() {
+  const storedSession = readStoredSession();
+  if (!storedSession?.access_token) {
+    setInlineStatus(
+      elements.authStatus,
+      "회원가입 또는 로그인 후 표시 이름을 방명록에 바로 사용할 수 있습니다.",
+      null
+    );
+    return;
+  }
+
+  try {
+    const member = await fetchCurrentUser(storedSession.access_token);
+    applySession(storedSession, member);
+    setInlineStatus(elements.authStatus, "로그인 상태를 복구했습니다.", "success");
+  } catch (error) {
+    const refreshed = await tryRefreshSession(storedSession.refresh_token);
+    if (refreshed) {
+      setInlineStatus(elements.authStatus, "세션을 새로 고쳤습니다.", "success");
+      return;
+    }
+
+    clearSession();
+    setInlineStatus(
+      elements.authStatus,
+      "이전 로그인 상태가 만료되어 다시 로그인해야 합니다.",
+      "error"
+    );
+    console.error(error);
+  }
+}
+
+async function tryRefreshSession(refreshToken) {
+  if (!refreshToken) {
+    return false;
+  }
+
+  try {
+    const payload = await authRequest(REFRESH_ENDPOINT, {
+      method: "POST",
+      body: JSON.stringify({
+        refresh_token: refreshToken,
+      }),
+    });
+    const member = await fetchCurrentUser(payload.access_token);
+    applySession(payload, member);
+    return true;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
 }
 
 async function loadEntries({ announce = false } = {}) {
@@ -75,12 +171,116 @@ async function loadEntries({ announce = false } = {}) {
     state.entries = [];
     renderEntries();
     elements.count.textContent = "0";
-    setConnectionStatus(
-      "방명록을 불러오지 못했습니다. Supabase SQL 스크립트 적용 여부를 확인하세요."
-    );
+    setConnectionStatus("방명록을 불러오지 못했습니다. Supabase 연결 상태를 확인하세요.");
     elements.entriesLoading.hidden = false;
     elements.entriesLoading.textContent = normalizeErrorMessage(error);
   }
+}
+
+async function handleSignupSubmit(event) {
+  event.preventDefault();
+  const displayName = elements.signupDisplayName.value.trim();
+  const email = elements.signupEmail.value.trim();
+  const password = elements.signupPassword.value;
+
+  const validationError = validateSignupForm({ displayName, email, password });
+  if (validationError) {
+    setInlineStatus(elements.authStatus, validationError, "error");
+    return;
+  }
+
+  setAuthBusy(true);
+  setInlineStatus(elements.authStatus, "회원가입을 처리하는 중입니다.", null);
+
+  try {
+    const payload = await authRequest(SIGNUP_ENDPOINT, {
+      method: "POST",
+      body: JSON.stringify({
+        email,
+        password,
+        data: {
+          display_name: displayName,
+        },
+      }),
+    });
+
+    if (payload.session && payload.user) {
+      applySession(payload.session, payload.user);
+      setInlineStatus(
+        elements.authStatus,
+        "회원가입과 로그인이 완료됐습니다.",
+        "success"
+      );
+    } else {
+      elements.signupForm.reset();
+      setAuthMode("login");
+      setInlineStatus(
+        elements.authStatus,
+        "회원가입이 완료됐습니다. 이메일 인증 후 로그인하세요.",
+        "success"
+      );
+    }
+  } catch (error) {
+    setInlineStatus(elements.authStatus, normalizeErrorMessage(error), "error");
+  } finally {
+    setAuthBusy(false);
+  }
+}
+
+async function handleLoginSubmit(event) {
+  event.preventDefault();
+  const email = elements.loginEmail.value.trim();
+  const password = elements.loginPassword.value;
+
+  if (!email || !password) {
+    setInlineStatus(elements.authStatus, "이메일과 비밀번호를 모두 입력하세요.", "error");
+    return;
+  }
+
+  setAuthBusy(true);
+  setInlineStatus(elements.authStatus, "로그인하는 중입니다.", null);
+
+  try {
+    const payload = await authRequest(LOGIN_ENDPOINT, {
+      method: "POST",
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+    });
+    const member = payload.user ?? (await fetchCurrentUser(payload.access_token));
+    applySession(payload, member);
+    elements.loginForm.reset();
+    setInlineStatus(elements.authStatus, "로그인됐습니다.", "success");
+  } catch (error) {
+    setInlineStatus(elements.authStatus, normalizeErrorMessage(error), "error");
+  } finally {
+    setAuthBusy(false);
+  }
+}
+
+async function handleLogoutClick() {
+  setAuthBusy(true);
+
+  try {
+    if (state.session?.access_token) {
+      await authRequest(LOGOUT_ENDPOINT, {
+        method: "POST",
+        accessToken: state.session.access_token,
+      });
+    }
+  } catch (error) {
+    console.error(error);
+  } finally {
+    clearSession();
+    setAuthBusy(false);
+    setInlineStatus(elements.authStatus, "로그아웃됐습니다.", "success");
+  }
+}
+
+function handleSyncProfileName() {
+  syncComposerWithMember();
+  setInlineStatus(elements.formStatus, "계정 표시 이름을 작성 폼에 반영했습니다.", "success");
 }
 
 async function handleCreateSubmit(event) {
@@ -109,14 +309,16 @@ async function handleCreateSubmit(event) {
     });
     const createdEntry = pickFirstRow(createdPayload);
 
-    if (createdEntry && createdEntry.id) {
+    if (createdEntry?.id) {
       state.entries = [createdEntry, ...state.entries];
+      renderEntries();
     } else {
       await loadEntries();
     }
 
-    elements.form.reset();
-    renderEntries();
+    elements.messageInput.value = "";
+    elements.pinInput.value = "";
+    syncComposerWithMember();
     elements.count.textContent = String(state.entries.length);
     setConnectionStatus("메시지가 저장되었습니다.");
     setInlineStatus(elements.formStatus, "메시지가 등록되었습니다.", "success");
@@ -125,6 +327,22 @@ async function handleCreateSubmit(event) {
   } finally {
     setFormBusy(false);
   }
+}
+
+function validateSignupForm({ displayName, email, password }) {
+  if (displayName.length < 2 || displayName.length > MAX_NAME_LENGTH) {
+    return "표시 이름은 2자 이상 20자 이하로 입력하세요.";
+  }
+
+  if (!email) {
+    return "회원가입에 사용할 이메일을 입력하세요.";
+  }
+
+  if (password.length < MIN_AUTH_PASSWORD_LENGTH) {
+    return "비밀번호는 최소 8자 이상이어야 합니다.";
+  }
+
+  return null;
 }
 
 function validateCreateForm({ name, pin, message }) {
@@ -166,7 +384,6 @@ function renderEntries() {
     name.textContent = entry.name;
     date.textContent = formatDate(entry.created_at);
     message.textContent = entry.message;
-    deleteButton.dataset.entryId = entry.id;
     deleteButton.addEventListener("click", () => openDeleteDialog(entry.id, entry.name));
 
     card.dataset.entryId = entry.id;
@@ -241,6 +458,108 @@ async function handleDeleteSubmit(event) {
   }
 }
 
+function setAuthMode(mode) {
+  state.authMode = mode === "login" ? "login" : "signup";
+  const showSignup = state.authMode === "signup";
+
+  elements.signupForm.hidden = !showSignup;
+  elements.loginForm.hidden = showSignup;
+
+  for (const button of elements.tabButtons) {
+    const isActive = button.dataset.authMode === state.authMode;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
+  }
+}
+
+function applySession(session, member) {
+  state.session = {
+    access_token: session.access_token,
+    refresh_token: session.refresh_token,
+  };
+  state.member = member;
+  writeStoredSession(state.session);
+  renderMemberState();
+  syncComposerWithMember();
+}
+
+function clearSession() {
+  state.session = null;
+  state.member = null;
+  clearStoredSession();
+  renderMemberState();
+  syncComposerWithMember();
+}
+
+function renderMemberState() {
+  const isSignedIn = Boolean(state.member);
+  elements.authGuestState.hidden = isSignedIn;
+  elements.authMemberState.hidden = !isSignedIn;
+
+  if (!isSignedIn) {
+    elements.memberName.textContent = "";
+    elements.memberEmail.textContent = "";
+    return;
+  }
+
+  elements.memberName.textContent = getMemberDisplayName(state.member);
+  elements.memberEmail.textContent = state.member.email ?? "";
+}
+
+function syncComposerWithMember() {
+  if (state.member) {
+    elements.nameInput.disabled = true;
+    elements.nameInput.value = getMemberDisplayName(state.member);
+    elements.nameInput.placeholder = "로그인한 표시 이름 사용";
+    elements.nameHelp.textContent =
+      "로그인 중이라 이름이 계정 표시 이름으로 고정됩니다.";
+    return;
+  }
+
+  elements.nameInput.disabled = false;
+  elements.nameInput.value = "";
+  elements.nameInput.placeholder = "2~20자";
+  elements.nameHelp.textContent = "로그인하지 않으면 직접 이름을 입력합니다.";
+}
+
+function getMemberDisplayName(member) {
+  const profileName = member?.user_metadata?.display_name?.trim();
+  if (profileName) {
+    return profileName;
+  }
+
+  const fallback = member?.email?.split("@")[0]?.trim();
+  return fallback || "Member";
+}
+
+async function fetchCurrentUser(accessToken) {
+  return authRequest(USER_ENDPOINT, {
+    method: "GET",
+    accessToken,
+  });
+}
+
+async function authRequest(url, { method = "GET", body, accessToken } = {}) {
+  const response = await fetch(url, {
+    method,
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${accessToken ?? SUPABASE_ANON_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body,
+  });
+
+  const text = await response.text();
+  const payload = text ? safeJsonParse(text) : null;
+
+  if (!response.ok) {
+    throw new Error(extractErrorMessage(payload) || "인증 요청에 실패했습니다.");
+  }
+
+  return payload;
+}
+
 async function supabaseRequest(url, { method, body } = {}) {
   const response = await fetch(url, {
     method,
@@ -260,6 +579,23 @@ async function supabaseRequest(url, { method, body } = {}) {
   }
 
   return payload;
+}
+
+function readStoredSession() {
+  try {
+    const raw = window.localStorage.getItem(SESSION_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredSession(session) {
+  window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+}
+
+function clearStoredSession() {
+  window.localStorage.removeItem(SESSION_STORAGE_KEY);
 }
 
 function safeJsonParse(text) {
@@ -306,8 +642,16 @@ function extractErrorMessage(payload) {
     return payload;
   }
 
+  if (typeof payload.msg === "string") {
+    return payload.msg;
+  }
+
   if (typeof payload.message === "string") {
     return payload.message;
+  }
+
+  if (typeof payload.error_description === "string") {
+    return payload.error_description;
   }
 
   if (typeof payload.error === "string") {
@@ -348,10 +692,26 @@ function setInlineStatus(target, message, tone) {
   }
 }
 
+function setAuthBusy(isBusy) {
+  for (const button of elements.tabButtons) {
+    button.disabled = isBusy;
+  }
+
+  elements.signupButton.disabled = isBusy;
+  elements.loginButton.disabled = isBusy;
+  elements.logoutButton.disabled = isBusy;
+  elements.syncProfileButton.disabled = isBusy;
+  elements.signupDisplayName.disabled = isBusy;
+  elements.signupEmail.disabled = isBusy;
+  elements.signupPassword.disabled = isBusy;
+  elements.loginEmail.disabled = isBusy;
+  elements.loginPassword.disabled = isBusy;
+}
+
 function setFormBusy(isBusy) {
   elements.submitButton.disabled = isBusy;
   elements.refreshButton.disabled = isBusy;
-  elements.nameInput.disabled = isBusy;
+  elements.nameInput.disabled = isBusy || Boolean(state.member);
   elements.pinInput.disabled = isBusy;
   elements.messageInput.disabled = isBusy;
 }
