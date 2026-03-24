@@ -454,41 +454,30 @@ button {
 
 .easter-egg-card {
   display: flex;
-  gap: 20px;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   margin-top: 28px;
-  padding: 24px 28px;
-  border: 1px solid rgba(255, 214, 84, 0.16);
-  border-radius: var(--radius-lg);
-  background:
-    linear-gradient(135deg, rgba(14, 27, 37, 0.96), rgba(8, 14, 20, 0.9)),
-    var(--panel);
-  box-shadow: var(--shadow);
+  padding: 10px 0 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
   opacity: 0.42;
   transform: translateY(18px) scale(0.985);
-  transition: opacity 220ms ease, transform 220ms ease, border-color 220ms ease;
+  transition: opacity 220ms ease, transform 220ms ease;
 }
 
 .easter-egg-card.is-revealed {
   opacity: 1;
   transform: translateY(0) scale(1);
-  border-color: rgba(255, 214, 84, 0.3);
-}
-
-.easter-egg-copy h2 {
-  margin: 10px 0 0;
-  font-family: "Space Grotesk", sans-serif;
-  font-size: clamp(1.4rem, 3vw, 2rem);
 }
 
 .pacman-launch-button {
   display: inline-flex;
-  gap: 16px;
   align-items: center;
-  padding: 16px 18px;
-  border-radius: 24px;
-  background: rgba(255, 214, 84, 0.08);
+  justify-content: center;
+  padding: 14px;
+  border-radius: 999px;
+  background: transparent;
   color: var(--text);
 }
 
@@ -524,23 +513,6 @@ button {
   border-radius: 50%;
   background: rgba(255, 244, 176, 0.86);
   box-shadow: 0 0 14px rgba(255, 244, 176, 0.22);
-}
-
-.pacman-launch-text {
-  display: grid;
-  gap: 4px;
-  text-align: left;
-}
-
-.pacman-launch-text strong {
-  font-family: "Space Grotesk", sans-serif;
-  font-size: 1.1rem;
-}
-
-.pacman-launch-text small {
-  color: var(--muted);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .pacman-dialog {
@@ -698,10 +670,6 @@ button {
   }
 
   .easter-egg-card {
-    padding: 20px;
-  }
-
-  .pacman-launch-text {
-    text-align: center;
+    padding-top: 4px;
   }
 }
