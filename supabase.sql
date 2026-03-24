@@ -60,7 +60,11 @@ begin
 
   return query
   insert into public.guestbook_entries (name, message, password_hash)
-  values (clean_name, clean_message, crypt(entry_password, gen_salt('bf')))
+  values (
+    clean_name,
+    clean_message,
+    extensions.crypt(entry_password, extensions.gen_salt('bf'))
+  )
   returning guestbook_entries.id, guestbook_entries.name, guestbook_entries.message, guestbook_entries.created_at;
 end;
 $$;
@@ -83,7 +87,10 @@ begin
 
   delete from public.guestbook_entries
   where guestbook_entries.id = entry_id
-    and guestbook_entries.password_hash = crypt(entry_password, guestbook_entries.password_hash);
+    and guestbook_entries.password_hash = extensions.crypt(
+      entry_password,
+      guestbook_entries.password_hash
+    );
 
   get diagnostics deleted_count = row_count;
   return deleted_count > 0;
