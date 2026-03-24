@@ -245,6 +245,37 @@
         <div id="entries-list" class="entries-list" aria-live="polite"></div>
       </section>
     </main>
+
+    <footer id="pacman-easter-egg" class="easter-egg-card">
+      <div class="easter-egg-copy">
+        <p class="section-kicker">Easter Egg</p>
+        <h2>끝까지 내려온 사람만 볼 수 있는 버튼</h2>
+        <p class="hint">
+          팩맨 로고를 누르면 방명록 아래에 숨겨둔 미니게임이 열립니다.
+        </p>
+      </div>
+      <button
+        id="pacman-launch-button"
+        class="pacman-launch-button"
+        type="button"
+        aria-haspopup="dialog"
+        aria-controls="pacman-dialog"
+        aria-label="팩맨 미니게임 시작"
+      >
+        <span class="pacman-launch-mark" aria-hidden="true">
+          <span class="pacman-orb"></span>
+          <span class="pacman-trail">
+            <span class="pacman-trail-dot"></span>
+            <span class="pacman-trail-dot"></span>
+            <span class="pacman-trail-dot"></span>
+          </span>
+        </span>
+        <span class="pacman-launch-text">
+          <strong>Play Pac-Man</strong>
+          <small>Scrollers only.</small>
+        </span>
+      </button>
+    </footer>
   </div>
 
   <template id="entry-template">
@@ -281,6 +312,72 @@
         <button id="confirm-delete-button" class="primary-button" type="submit">삭제</button>
       </div>
     </form>
+  </dialog>
+
+  <dialog id="pacman-dialog" class="pacman-dialog">
+    <div class="pacman-panel">
+      <div class="pacman-panel-head">
+        <div>
+          <p class="section-kicker">Mini Game</p>
+          <h2>Pac-Man</h2>
+        </div>
+        <div class="pacman-panel-actions">
+          <button id="pacman-restart-button" class="ghost-button" type="button">
+            다시 시작
+          </button>
+          <button id="pacman-close-button" class="ghost-button" type="button">
+            닫기
+          </button>
+        </div>
+      </div>
+
+      <p id="pacman-status" class="pacman-status" aria-live="polite"></p>
+
+      <div class="pacman-canvas-shell">
+        <canvas
+          id="pacman-canvas"
+          width="384"
+          height="384"
+          tabindex="0"
+          aria-label="팩맨 미니게임 캔버스"
+        ></canvas>
+      </div>
+
+      <p class="pacman-help">
+        방향키 또는 WASD로 이동하고, Space로 재시작할 수 있습니다.
+      </p>
+
+      <div class="pacman-pad" aria-label="모바일 조작 버튼">
+        <button
+          type="button"
+          class="pacman-pad-button pacman-pad-up"
+          data-pacman-direction="up"
+        >
+          Up
+        </button>
+        <button
+          type="button"
+          class="pacman-pad-button pacman-pad-left"
+          data-pacman-direction="left"
+        >
+          Left
+        </button>
+        <button
+          type="button"
+          class="pacman-pad-button pacman-pad-right"
+          data-pacman-direction="right"
+        >
+          Right
+        </button>
+        <button
+          type="button"
+          class="pacman-pad-button pacman-pad-down"
+          data-pacman-direction="down"
+        >
+          Down
+        </button>
+      </div>
+    </div>
   </dialog>
 
   <script type="module" src="app.js"></script>

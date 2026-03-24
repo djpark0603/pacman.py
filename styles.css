@@ -452,6 +452,204 @@ button {
   margin-top: 18px;
 }
 
+.easter-egg-card {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 28px;
+  padding: 24px 28px;
+  border: 1px solid rgba(255, 214, 84, 0.16);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(135deg, rgba(14, 27, 37, 0.96), rgba(8, 14, 20, 0.9)),
+    var(--panel);
+  box-shadow: var(--shadow);
+  opacity: 0.42;
+  transform: translateY(18px) scale(0.985);
+  transition: opacity 220ms ease, transform 220ms ease, border-color 220ms ease;
+}
+
+.easter-egg-card.is-revealed {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  border-color: rgba(255, 214, 84, 0.3);
+}
+
+.easter-egg-copy h2 {
+  margin: 10px 0 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+}
+
+.pacman-launch-button {
+  display: inline-flex;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 18px;
+  border-radius: 24px;
+  background: rgba(255, 214, 84, 0.08);
+  color: var(--text);
+}
+
+.pacman-launch-button:hover {
+  transform: translateY(-2px);
+}
+
+.pacman-launch-mark {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.pacman-orb {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 62% 35%, #06131b 0 4px, transparent 5px),
+    conic-gradient(from 28deg, #ffd84d 0 318deg, transparent 318deg 360deg);
+  filter: drop-shadow(0 10px 24px rgba(255, 216, 77, 0.18));
+}
+
+.pacman-trail {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.pacman-trail-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 244, 176, 0.86);
+  box-shadow: 0 0 14px rgba(255, 244, 176, 0.22);
+}
+
+.pacman-launch-text {
+  display: grid;
+  gap: 4px;
+  text-align: left;
+}
+
+.pacman-launch-text strong {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.1rem;
+}
+
+.pacman-launch-text small {
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pacman-dialog {
+  width: min(calc(100% - 20px), 820px);
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.pacman-dialog::backdrop {
+  background: rgba(2, 8, 12, 0.74);
+  backdrop-filter: blur(6px);
+}
+
+.pacman-panel {
+  padding: 24px;
+  border: 1px solid rgba(255, 214, 84, 0.16);
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(9, 19, 26, 0.98), rgba(4, 11, 15, 0.94)),
+    var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.pacman-panel-head {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.pacman-panel-head h2 {
+  margin: 10px 0 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+}
+
+.pacman-panel-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.pacman-status {
+  margin: 18px 0 0;
+  color: #dff8ef;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pacman-canvas-shell {
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid rgba(148, 174, 187, 0.12);
+  border-radius: 24px;
+  background: rgba(2, 8, 12, 0.86);
+}
+
+#pacman-canvas {
+  display: block;
+  width: 100%;
+  max-width: 384px;
+  margin: 0 auto;
+  border-radius: 18px;
+  background: #050505;
+}
+
+.pacman-help {
+  margin: 14px 0 0;
+  color: var(--muted);
+  text-align: center;
+}
+
+.pacman-pad {
+  display: grid;
+  gap: 10px;
+  grid-template-areas:
+    ". up ."
+    "left . right"
+    ". down .";
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 18px;
+}
+
+.pacman-pad-button {
+  min-height: 46px;
+  padding: 0 14px;
+  border-radius: 16px;
+  background: rgba(137, 240, 209, 0.08);
+  color: var(--text);
+}
+
+.pacman-pad-up {
+  grid-area: up;
+}
+
+.pacman-pad-left {
+  grid-area: left;
+}
+
+.pacman-pad-right {
+  grid-area: right;
+}
+
+.pacman-pad-down {
+  grid-area: down;
+}
+
 @media (max-width: 960px) {
   .hero-grid,
   .layout {
@@ -482,7 +680,10 @@ button {
   .form-foot,
   .member-actions,
   .entry-head,
-  .dialog-actions {
+  .dialog-actions,
+  .easter-egg-card,
+  .pacman-panel-head,
+  .pacman-panel-actions {
     align-items: stretch;
     flex-direction: column;
   }
@@ -490,7 +691,17 @@ button {
   .primary-button,
   .ghost-button,
   .delete-button,
-  .auth-tab {
+  .auth-tab,
+  .pacman-launch-button,
+  .pacman-pad-button {
     width: 100%;
+  }
+
+  .easter-egg-card {
+    padding: 20px;
+  }
+
+  .pacman-launch-text {
+    text-align: center;
   }
 }

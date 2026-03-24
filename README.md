@@ -8,6 +8,7 @@ GitHub Pages에 바로 올릴 수 있는 정적 방명록입니다. 프론트엔
 - `index.html`: 방명록 UI
 - `styles.css`: 전체 스타일
 - `app.js`: Supabase 조회/등록/삭제와 회원가입/로그인 로직
+- `pacman-easter-egg.js`: 페이지 하단 이스터에그 팩맨 미니게임
 - `supabase.sql`: Supabase SQL Editor에 넣을 테이블, 뷰, 함수 정의
 - `pacman.py`: 기존 Python `tkinter` Pac-Man 게임
 
@@ -30,6 +31,10 @@ GitHub Pages에 바로 올릴 수 있는 정적 방명록입니다. 프론트엔
 - 작성 연동: 로그인하면 방명록 이름이 계정 표시 이름으로 고정
 
 Supabase Dashboard에서 이메일 회원가입이 비활성화되어 있으면 Auth 기능은 동작하지 않습니다.
+
+## 이스터에그
+
+페이지 맨 아래까지 내리면 팩맨 로고 버튼이 보입니다. 버튼을 누르면 브라우저 안에서 바로 실행되는 미니게임이 열립니다.
 
 ## 로컬 실행
 

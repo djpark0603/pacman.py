@@ -1,3 +1,5 @@
+import { initPacmanEasterEgg } from "./pacman-easter-egg.js";
+
 const SUPABASE_URL = "https://hzozgtqhasiuyevpuwmx.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6b3pndHFoYXNpdXlldnB1d214Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyODkzMjMsImV4cCI6MjA4OTg2NTMyM30.-kA5R-hxuUfBuxpoRMzbSM-xrmqHBhA2dt7Un6zM5CM";
@@ -68,6 +70,8 @@ const elements = {
 boot();
 
 function boot() {
+  initPacmanEasterEgg();
+
   elements.refreshButton.addEventListener("click", () => {
     void loadEntries({ announce: true });
   });
