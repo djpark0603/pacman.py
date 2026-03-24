@@ -198,6 +198,7 @@ async function handleSignupSubmit(event) {
       body: JSON.stringify({
         email,
         password,
+        email_redirect_to: getAuthRedirectUrl(),
         data: {
           display_name: displayName,
         },
@@ -558,6 +559,10 @@ async function authRequest(url, { method = "GET", body, accessToken } = {}) {
   }
 
   return payload;
+}
+
+function getAuthRedirectUrl() {
+  return `${window.location.origin}${window.location.pathname}`;
 }
 
 async function supabaseRequest(url, { method, body } = {}) {
