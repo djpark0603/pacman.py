@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Orbit Guestbook</title>
+  <meta
+    name="description"
+    content="GitHub Pages에 올릴 수 있는 Supabase 기반 정적 방명록입니다."
+  >
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <p class="eyebrow">Supabase x GitHub Pages</p>
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <h1>Orbit Guestbook</h1>
+          <p class="hero-text">
+            짧게 인사만 남겨도 되고, 프로젝트 방문 기록처럼 사용해도 됩니다.
+            브라우저에서 바로 Supabase와 통신하는 정적 방명록입니다.
+          </p>
+          <div class="hero-badges">
+            <span>실시간 연결 없이도 단순 배포</span>
+            <span>PIN 기반 삭제</span>
+            <span>모바일 대응</span>
+          </div>
+        </div>
+        <aside class="status-panel" aria-label="방명록 상태">
+          <div class="status-label">Guestbook Status</div>
+          <div class="status-metric">
+            <span id="entry-count">0</span>
+            <small>entries loaded</small>
+          </div>
+          <p id="connection-status" class="status-copy">
+            Supabase 연결을 확인하는 중입니다.
+          </p>
+          <button id="refresh-button" class="ghost-button" type="button">
+            새로고침
+          </button>
+        </aside>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="composer card">
+        <div class="section-head">
+          <p class="section-kicker">Write</p>
+          <h2>방명록 남기기</h2>
+        </div>
+
+        <form id="guestbook-form" class="guestbook-form">
+          <label>
+            이름
+            <input
+              id="name-input"
+              name="name"
+              type="text"
+              maxlength="20"
+              placeholder="2~20자"
+              required
+            >
+          </label>
+
+          <label>
+            삭제용 PIN
+            <input
+              id="pin-input"
+              name="pin"
+              type="password"
+              minlength="4"
+              maxlength="32"
+              placeholder="삭제할 때 필요한 비밀번호"
+              required
+            >
+          </label>
+
+          <label>
+            메시지
+            <textarea
+              id="message-input"
+              name="message"
+              rows="6"
+              maxlength="500"
+              placeholder="따뜻한 말도 좋고, 짧은 피드백도 좋습니다."
+              required
+            ></textarea>
+          </label>
+
+          <div class="form-foot">
+            <p class="hint">
+              메시지는 최대 500자까지 저장됩니다. 삭제할 때는 입력한 PIN이 필요합니다.
+            </p>
+            <button id="submit-button" class="primary-button" type="submit">
+              남기기
+            </button>
+          </div>
+          <p id="form-status" class="inline-status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="entries-panel card">
+        <div class="section-head">
+          <p class="section-kicker">Board</p>
+          <h2>최근 메시지</h2>
+        </div>
+
+        <div id="entries-loading" class="entries-empty">
+          방명록을 불러오는 중입니다.
+        </div>
+        <div id="entries-list" class="entries-list" aria-live="polite"></div>
+      </section>
+    </main>
+  </div>
+
+  <template id="entry-template">
+    <article class="entry-card">
+      <div class="entry-head">
+        <div>
+          <h3 class="entry-name"></h3>
+          <p class="entry-date"></p>
+        </div>
+        <button class="delete-button" type="button">삭제</button>
+      </div>
+      <p class="entry-message"></p>
+    </article>
+  </template>
+
+  <dialog id="delete-dialog" class="delete-dialog">
+    <form id="delete-form" method="dialog" class="delete-form">
+      <h2>메시지 삭제</h2>
+      <p>작성할 때 입력한 PIN을 넣어야 삭제됩니다.</p>
+      <label>
+        PIN
+        <input
+          id="delete-pin-input"
+          name="delete-pin"
+          type="password"
+          minlength="4"
+          maxlength="32"
+          required
+        >
+      </label>
+      <p id="delete-status" class="inline-status" aria-live="polite"></p>
+      <div class="dialog-actions">
+        <button id="cancel-delete-button" class="ghost-button" type="button">취소</button>
+        <button id="confirm-delete-button" class="primary-button" type="submit">삭제</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
